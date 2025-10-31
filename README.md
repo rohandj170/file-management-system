@@ -3,7 +3,11 @@ A simple and efficient file management web application built using Node.js and E
 
 # Features
 🗂️ Upload & Manage Files – Easily upload, list, download, and delete files.
+
 💾 Local File Storage – Files are stored securely on the server’s filesystem.
+
 ⚙️ Express Backend – Handles file requests efficiently with RESTful routes.
+
 🧭 Clean UI – Simple and responsive interface for smooth navigation.
+
 🛠️ Error Handling – Prevents invalid uploads and manages missing files gracefully.
