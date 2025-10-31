@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .breadcrumb {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .breadcrumb span {
+            cursor: pointer;
+            color: #667eea;
+            transition: opacity 0.2s;
+        }
+
+        .breadcrumb span:hover {
+            opacity: 0.7;
+        }
+
+        .file-list {
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-item:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+            transform: translateX(4px);
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .file-icon.folder {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: #212529;
+        }
+
+        .file-meta {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .file-actions button {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #212529;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 2000;
+            animation: slideIn 0.3s;
+        }
+
+        .notification.success {
+            border-left: 4px solid #28a745;
+        }
+
+        .notification.error {
+            border-left: 4px solid #dc3545;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 File Management System</h1>
+            <p>Upload, organize, and manage your files efficiently</p>
+        </div>
+
+        <div class="toolbar">
+            <!-- Single-file input (name="file" matches the server's multer field). Use `hidden` so programmatic .click() reliably opens picker -->
+            <input type="file" id="fileInput" name="file" hidden>
+            <button class="btn btn-primary" onclick="uploadFile()">📤 Upload File</button>
+            <button class="btn btn-primary" onclick="showCreateFolderModal()">📁 New Folder</button>
+            <button class="btn btn-secondary" onclick="refreshFiles()">🔄 Refresh</button>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search files..." onkeyup="handleSearch(event)">
+            </div>
+        </div>
+
+        <div class="breadcrumb" id="breadcrumb">
+            <span onclick="navigateToFolder('')">Home</span>
+        </div>
+
+        <div class="file-list" id="fileList">
+            <div class="loading">Loading files...</div>
+        </div>
+    </div>
+
+    <!-- Create Folder Modal -->
+    <div class="modal" id="createFolderModal">
+        <div class="modal-content">
+            <h2>Create New Folder</h2>
+            <div class="form-group">
+                <label>Folder Name</label>
+                <input type="text" id="folderName" placeholder="Enter folder name">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="createFolder()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rename Modal -->
+    <div class="modal" id="renameModal">
+        <div class="modal-content">
+            <h2>Rename</h2>
+            <div class="form-group">
+                <label>New Name</label>
+                <input type="text" id="newName" placeholder="Enter new name">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmRename()">Rename</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const API_URL = 'http://localhost:3000/api';
+        let currentFolder = '';
+        let renameTarget = null;
+
+        // Initialize
+        loadFiles();
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        async function loadFiles(folder = '') {
+            currentFolder = folder;
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '<div class="loading">Loading files...</div>';
+
+            try {
+                const response = await fetch(`${API_URL}/files?folder=${encodeURIComponent(folder)}`);
+                const files = await response.json();
+
+                updateBreadcrumb(folder);
+                renderFiles(files);
+            } catch (error) {
+                fileList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><h3>Error loading files</h3></div>';
+                showNotification('Error loading files', 'error');
+            }
+        }
+
+        // Encode each path segment for safe URLs (preserve slashes between segments)
+        function encodePathForUrl(p) {
+            if (!p) return '';
+            return p.split('/').map(s => encodeURIComponent(s)).join('/');
+        }
+
+        function renderFiles(files) {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+            if (!files || files.length === 0) {
+                fileList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📂</div><h3>This folder is empty</h3><p>Upload files or create folders to get started</p></div>';
+                return;
+            }
+
+            const directories = files.filter(f => f.isDirectory).sort((a, b) => a.name.localeCompare(b.name));
+            const regularFiles = files.filter(f => !f.isDirectory).sort((a, b) => a.name.localeCompare(b.name));
+            const sortedFiles = [...directories, ...regularFiles];
+
+            sortedFiles.forEach(file => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+
+                if (file.isDirectory) {
+                    item.addEventListener('dblclick', () => navigateToFolder(file.path));
+                }
+
+                const icon = document.createElement('div');
+                icon.className = 'file-icon' + (file.isDirectory ? ' folder' : '');
+                icon.textContent = file.isDirectory ? '📁' : getFileIcon(file.type || '');
+
+                const info = document.createElement('div');
+                info.className = 'file-info';
+
+                const name = document.createElement('div');
+                name.className = 'file-name';
+                name.textContent = file.name;
+
+                const meta = document.createElement('div');
+                meta.className = 'file-meta';
+                const typeLabel = file.isDirectory ? 'Folder' : `${formatFileSize(file.size)} • ${String(file.type || '').toUpperCase()}`;
+                meta.textContent = `${typeLabel} • ${new Date(file.modified).toLocaleString()}`;
+
+                info.appendChild(name);
+                info.appendChild(meta);
+
+                const actions = document.createElement('div');
+                actions.className = 'file-actions';
+
+                if (!file.isDirectory) {
+                    const dl = document.createElement('button');
+                    dl.className = 'btn btn-primary';
+                    dl.textContent = '⬇️ Download';
+                    dl.addEventListener('click', () => downloadFile(file.path));
+                    actions.appendChild(dl);
+                }
+
+                const rn = document.createElement('button');
+                rn.className = 'btn btn-secondary';
+                rn.textContent = '✏️ Rename';
+                rn.addEventListener('click', () => showRenameModal(file.path, file.name));
+                actions.appendChild(rn);
+
+                const del = document.createElement('button');
+                del.className = 'btn btn-danger';
+                del.textContent = '🗑️ Delete';
+                del.addEventListener('click', () => deleteItem(file.path, file.name));
+                actions.appendChild(del);
+
+                item.appendChild(icon);
+                item.appendChild(info);
+                item.appendChild(actions);
+
+                fileList.appendChild(item);
+            });
+        }
+
+        function getFileIcon(type) {
+            const icons = {
+                'pdf': '📄',
+                'doc': '📝', 'docx': '📝',
+                'xls': '📊', 'xlsx': '📊',
+                'ppt': '📽️', 'pptx': '📽️',
+                'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
+                'mp4': '🎬', 'avi': '🎬', 'mov': '🎬',
+                'mp3': '🎵', 'wav': '🎵',
+                'zip': '📦', 'rar': '📦',
+                'txt': '📃'
+            };
+            return icons[type.toLowerCase()] || '📄';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function updateBreadcrumb(folder) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            const parts = folder.split('/').filter(p => p);
+            
+            let html = '<span onclick="navigateToFolder(\'\')">Home</span>';
+            let currentPath = '';
+            
+            parts.forEach(part => {
+                currentPath += (currentPath ? '/' : '') + part;
+                html += ` / <span onclick="navigateToFolder('${currentPath}')">${part}</span>`;
+            });
+            
+            breadcrumb.innerHTML = html;
+        }
+
+        function navigateToFolder(folder) {
+            loadFiles(folder);
+        }
+
+        function uploadFile() {
+            document.getElementById('fileInput').click();
+        }
+
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('folder', currentFolder);
+
+            try {
+                const response = await fetch(`${API_URL}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    showNotification('File uploaded successfully');
+                    loadFiles(currentFolder);
+                } else {
+                    showNotification('Upload failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Upload failed', 'error');
+            }
+
+            e.target.value = '';
+        });
+
+        function showCreateFolderModal() {
+            document.getElementById('createFolderModal').classList.add('active');
+            document.getElementById('folderName').value = '';
+            document.getElementById('folderName').focus();
+        }
+
+        async function createFolder() {
+            const name = document.getElementById('folderName').value.trim();
+            if (!name) return;
+
+            try {
+                const response = await fetch(`${API_URL}/folder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, parent: currentFolder })
+                });
+
+                if (response.ok) {
+                    showNotification('Folder created successfully');
+                    closeModal();
+                    loadFiles(currentFolder);
+                } else {
+                    const error = await response.json();
+                    showNotification(error.error || 'Failed to create folder', 'error');
+                }
+            } catch (error) {
+                showNotification('Failed to create folder', 'error');
+            }
+        }
+
+        function downloadFile(path) {
+            const safe = encodePathForUrl(path);
+            window.open(`${API_URL}/download/${safe}`, '_blank');
+        }
+
+        async function deleteItem(path, name) {
+            if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+            try {
+                const safe = encodePathForUrl(path);
+                const response = await fetch(`${API_URL}/delete/${safe}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showNotification('Deleted successfully');
+                    loadFiles(currentFolder);
+                } else {
+                    showNotification('Delete failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Delete failed', 'error');
+            }
+        }
+
+        function showRenameModal(path, currentName) {
+            renameTarget = path;
+            document.getElementById('renameModal').classList.add('active');
+            document.getElementById('newName').value = currentName;
+            document.getElementById('newName').focus();
+        }
+
+        async function confirmRename() {
+            const newName = document.getElementById('newName').value.trim();
+            if (!newName || !renameTarget) return;
+
+            try {
+                const response = await fetch(`${API_URL}/rename`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ oldPath: renameTarget, newName })
+                });
+
+                if (response.ok) {
+                    showNotification('Renamed successfully');
+                    closeModal();
+                    loadFiles(currentFolder);
+                } else {
+                    const error = await response.json();
+                    showNotification(error.error || 'Rename failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Rename failed', 'error');
+            }
+        }
+
+        async function handleSearch(event) {
+            const query = event.target.value.trim();
+            
+            if (query.length < 2) {
+                if (query.length === 0) loadFiles(currentFolder);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}`);
+                const results = await response.json();
+                renderFiles(results);
+            } catch (error) {
+                showNotification('Search failed', 'error');
+            }
+        }
+
+        function refreshFiles() {
+            loadFiles(currentFolder);
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.classList.remove('active');
+            });
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        });
+    </script>
+</body>
+</html>
